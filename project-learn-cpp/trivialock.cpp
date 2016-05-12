@@ -124,15 +124,18 @@ class List {
 		int			isempty();
 };
 
+/// empty initialization: constructs list w/o nodes
 template <class T>
 List<T>::List() { bot = NULL; top = NULL;  }
 
+// constructs list with one (1) node
 template <class T>
 List<T>::List(Node<T> * first) {
 	this->top = first;
 	this->bot = first;
 }
 
+// frees list, top nodes to bottom
 template <class T>
 List<T>::~List() { 
 	Node<T> * ref = this->top;
@@ -146,6 +149,7 @@ List<T>::~List() {
 	//delete this;// this line is not needed why?
 }
 
+// pulls the node that is at the labeled index
 template <class T>
 Node<T> * List<T>::pull(int index) {
 	if(this->isempty) return NULL;
@@ -158,19 +162,35 @@ Node<T> * List<T>::pull(int index) {
 	return elem;
 }
 
+// returns TRUE if there is a node in the list (logic: there is a top node)
 template <class T>
 int List<T>::isempty() {
 	return (this->top == NULL) ? TRUE: FALSE;
 }
 
+// adds the given node to the bottom of the list
 template <class T>
 void List<T>::add(Node<T> * caboose) {
 	if(this->isempty() == TRUE) return;
-	cout << "checkpoint\n";
 	this->bot->insert(caboose);
 	this->bot = caboose;
 }
 
+// adds the given node to the bottom of the list
+template <class T>
+void List<T>::addnew() {
+	//make a new node
+	Node<T> * newguy = new Node<T>;
+	if(this->isempty() == TRUE) {
+		this->top = newguy;
+		this->bot = newguy;
+	}
+	else {
+		this->insert(newguy);
+	}
+}
+
+// prints the node data in the list from top to bottom
 template <class T>
 void List<T>::print() {
 	Node<T> * ref = this->top;
