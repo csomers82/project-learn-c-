@@ -7,12 +7,15 @@
 #include <cstdlib>
 #include <stdio.h>
 #include <string>
+#include <cstring>
 
 #define VAULTFILE		"test.txt"
 //#define BUFFERSIZE		256
 #define TRUE			1
 #define FALSE			0
 #define NSECTIONS		3
+#define SDELIM			("=")
+#define LDELIM			("\n")
 
 using namespace std;
 
@@ -121,6 +124,7 @@ class List {
 		Node<T>*	pull(int);
 		void		print();
 		void		add(Node<T>* imp);
+		void		addnew(T data);
 		int			isempty();
 };
 
@@ -178,15 +182,15 @@ void List<T>::add(Node<T> * caboose) {
 
 // adds the given node to the bottom of the list
 template <class T>
-void List<T>::addnew() {
+void List<T>::addnew(T data) {
 	//make a new node
-	Node<T> * newguy = new Node<T>;
+	Node<T> * newguy = new Node<T> (data);
 	if(this->isempty() == TRUE) {
 		this->top = newguy;
 		this->bot = newguy;
 	}
 	else {
-		this->insert(newguy);
+		this->bot->insert(newguy);
 	}
 }
 
@@ -212,26 +216,31 @@ void List<T>::print() {
 //		as the statistics associated with current and past access attempts.
 ///
 class Vault {
-		List<string> * answers;// string array of (encrypted) answers
-		List<string> * questions;// string array of (encrypted) questions
+		//properties
 		unsigned int vaultcount;//number of entries in the vault
 		unsigned int past_accesses;// total previous accesses
 		string * failurelog;// a list of failure occurances
 	public:
+		//properties
+		List<string> * answers;// string array of (encrypted) answers
+		List<string> * questions;// string array of (encrypted) questions
+		List<string> * statistics;// 
+		//methods
 		Vault(FILE*);
 		int attempt();
 };
 
 Vault::Vault (FILE* fp) {
 	//initialization variables
-	char * buffer;
-	long fSize = 0;
-	size_t result = 0;
-	char * line;// a question, answer, or statistic
-	char * section;// a set of question, answers, stats
-	char * target1;
-	char * target2;
-
+	char * buffer			= NULL;
+	long fSize				= 0;
+	size_t result			= 0;
+	char * line				= NULL;// a question, answer, or statistic
+	char * section			= NULL;// a set of question, answers, stats
+	char * target1			= NULL;// section fragment paragraph tokens are read from
+	char * target2			= NULL;// paragraph fragment that lines are read from
+	List<string> * lstobj	= NULL;// pointer to a new list, Qs, As
+	
 	//allocate buffer for entire file (assumed small)
 	fseek(fp, 0, SEEK_END);
 	fSize = ftell(fp);
@@ -241,23 +250,44 @@ Vault::Vault (FILE* fp) {
 	result = fread(buffer, sizeof(char), fSize, fp);
 	if(result != fSize) {
 		cerr << "Data Reading Error\n";
-		fclose(fp);
-		delete[] buffer;
 	}		
 	else {
-	/*	target1 = buffer;
+		target1 = buffer;
+		// outter loop :: grab a section from the buffer
 		for(int index = 0; index < NSECTIONS; ++index) 
 		{
-			section = strtok(target, SDELIM);
-			target1 = NULL;
-			if(section = NULL) {
+			section = std::strtok(target1, SDELIM);
+			cout << "3\n";
+			cout << "section = ." << section << ".\n";
+			if(section == NULL) {
 				break;
 			}
 			target2 = section;
-			for(int jndex = 0; 
-		}
-	*/
+			lstobj = new List<string>();
+			// inner loop :: collect each line of the section into list
+			do {
+				line = std::strtok(target2, LDELIM);
+				cout << "line = _" << line << "_\n";
+				if(line != NULL)
+				lstobj->addnew(line);
+				target2 = NULL;
+			} while (line != NULL);
+
+			cout << "1\n";
+			switch(index) {
+				case 0:	this->questions = lstobj;
+						break;
+				case 1: this->answers = lstobj;
+						break;
+				case 2: this->statistics = lstobj;
+						break;
+			}
+			target1 = NULL;
+			cout << "2\n";
+		}			
+		cout << "testfile = " << result << " bytes.\n";
 	}
+	delete[] buffer;
 }
 
 int Vault::attempt() {
@@ -283,14 +313,24 @@ int main(int argc, char * argv[]) {
 	Node<string> * ralphi  = new Node<string>(d2); 
 	List<string> * litz = new List<string>(biscuit);	
 	litz->add(ralphi);
+	litz->addnew("ralphi");
 	litz->print();
 	//List<string> * litz = new List<string>();	
-	//FILE * fp = fopen(VAULTFILE, "r");
-	//if(fp == NULL) return(EXIT_FAILURE);
-	//Vault * vault = new Vault(fp);	
+	FILE * fp = fopen(VAULTFILE, "r");
+	if(fp == NULL) return(EXIT_FAILURE);
+	Vault * vault = new Vault(fp);	
 	
-
+	cout << "Qs\n";
+	vault->questions->print();
+	cout << "As\n";
+	vault->answers->print();
+	cout << "Ss\n";
+	vault->statistics->print();
+	
 	delete litz;
-	//delete vault;
-	//fclose(fp);
+	delete vault;
+	fclose(fp);
 }
+
+
+
