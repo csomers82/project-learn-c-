@@ -90,8 +90,8 @@ void Node<T>::insert(Node<T>* target)
 	// reattached the end we saved 
 	follow->next = after;
 }
-
-/*template <class T>
+/*
+template <class T>
 Node<T>::~Node()
 {
 	Node<T> * after = this->getnxt();     
@@ -101,7 +101,8 @@ Node<T>::~Node()
 		at = after;
 		after = at->getnxt();
 	}
-}*/
+}
+*/
 /////////////////////////////////////////////////////////////////
 ///
 //	linked list template or C++
@@ -118,7 +119,7 @@ class List {
 		~List();
 		// methods
 		Node<T>*	pull(int);
-		int			count();
+		void		print();
 		void		add(Node<T>* imp);
 		int			isempty();
 };
@@ -134,7 +135,14 @@ List<T>::List(Node<T> * first) {
 
 template <class T>
 List<T>::~List() { 
-	delete this->top;
+	Node<T> * ref = this->top;
+	Node<T> * nxt;
+	while(ref != NULL) {
+		nxt = ref->getnxt();
+		delete ref;
+		ref = nxt;
+	}
+	//delete this->top;
 	//delete this;// this line is not needed why?
 }
 
@@ -163,6 +171,17 @@ void List<T>::add(Node<T> * caboose) {
 	this->bot = caboose;
 }
 
+template <class T>
+void List<T>::print() {
+	Node<T> * ref = this->top;
+	int count = 1;
+	cout << "\n[[start list\n";
+	while(ref != NULL) {
+		cout << "data{" << count++ << "} = " << ref->data << endl;
+		ref = ref->getnxt();
+	}
+	cout << "end list]]\n\n";
+}
 
 
 
@@ -241,9 +260,10 @@ int main(int argc, char * argv[]) {
 	string d1 = "honey";
 	string d2 = "dingus";
 	Node<string> * biscuit = new Node<string>(d1); 
-	//Node<string> * ralphi  = new Node<string>(d2); 
+	Node<string> * ralphi  = new Node<string>(d2); 
 	List<string> * litz = new List<string>(biscuit);	
-	//litz->add(ralphi);
+	litz->add(ralphi);
+	litz->print();
 	//List<string> * litz = new List<string>();	
 	//FILE * fp = fopen(VAULTFILE, "r");
 	//if(fp == NULL) return(EXIT_FAILURE);
