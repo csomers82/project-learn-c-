@@ -69,29 +69,17 @@ template <class T>
 void Node<T>::setnxt(Node<T> * nxt)
 {
 	this->next = nxt;
-	cout << "woah\n";
 }
 
 template <class T>
 void Node<T>::insert(Node<T>* target)
 {
 	// save ptrs
-	Node<T> * after = this->getnxt();     
-	Node<T> * follow = this;
-	Node<T> * end = NULL;
+	//Node<T> * after = this->getnxt();     
+	Node<T> * end = this;
 
 	// reroute and evaluate
-	this->setnxt(target);
-	if(after == NULL) {
-		//cout << "uh oh\n";
-		return;
-	}
-	// find the end of the inserted (list)
-	do {
-		end = follow->getnxt();
-	} while(end != NULL);
-	// reattached the end we saved 
-	follow->next = after;
+	end->setnxt(target);
 }
 /*
 template <class T>
@@ -175,7 +163,7 @@ int List<T>::isempty() {
 // adds the given node to the bottom of the list
 template <class T>
 void List<T>::add(Node<T> * caboose) {
-	if(this->isempty() == TRUE) return;
+	//if(this->isempty() == TRUE) return;
 	this->bot->insert(caboose);
 	this->bot = caboose;
 }
@@ -191,6 +179,7 @@ void List<T>::addnew(T data) {
 	}
 	else {
 		this->bot->insert(newguy);
+		this->bot = newguy;
 	}
 }
 
@@ -235,6 +224,7 @@ Vault::Vault (FILE* fp) {
 	char * buffer			= NULL;
 	long fSize				= 0;
 	size_t result			= 0;
+	int index				= 0;
 	char * line				= NULL;// a question, answer, or statistic
 	char * section			= NULL;// a set of question, answers, stats
 	char * target1			= NULL;// section fragment paragraph tokens are read from
@@ -248,33 +238,31 @@ Vault::Vault (FILE* fp) {
 	buffer = new char [fSize];
 	//read file and parse
 	result = fread(buffer, sizeof(char), fSize, fp);
+	cout << buffer;
 	if(result != fSize) {
 		cerr << "Data Reading Error\n";
 	}		
 	else {
 		target1 = buffer;
 		// outter loop :: grab a section from the buffer
-		for(int index = 0; index < NSECTIONS; ++index) 
+		section = std::strtok(target1, SDELIM);
+		while(section != NULL) 
 		{
-			section = std::strtok(target1, SDELIM);
 			cout << "3\n";
 			cout << "section = ." << section << ".\n";
-			if(section == NULL) {
-				break;
-			}
 			target2 = section;
 			lstobj = new List<string>();
 			// inner loop :: collect each line of the section into list
-			do {
-				line = std::strtok(target2, LDELIM);
-				cout << "line = _" << line << "_\n";
+			line = std::strtok(target2, LDELIM);
+			while (line != NULL) {
+				//cout << "line = _" << line << "_\n";
 				if(line != NULL)
 				lstobj->addnew(line);
 				target2 = NULL;
-			} while (line != NULL);
-
+				line = std::strtok(target2, LDELIM);
+			}
 			cout << "1\n";
-			switch(index) {
+			switch(index++) {
 				case 0:	this->questions = lstobj;
 						break;
 				case 1: this->answers = lstobj;
@@ -282,8 +270,9 @@ Vault::Vault (FILE* fp) {
 				case 2: this->statistics = lstobj;
 						break;
 			}
-			target1 = NULL;
 			cout << "2\n";
+			target1 = NULL;
+			section = std::strtok(target1, SDELIM);
 		}			
 		cout << "testfile = " << result << " bytes.\n";
 	}
