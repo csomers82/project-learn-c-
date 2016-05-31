@@ -207,7 +207,7 @@ void List<T>::print() {
 class Vault {
 		//properties
 		unsigned int vaultcount;//number of entries in the vault
-		unsigned int past_accesses;// total previous accesses
+		unsigned int past_accesses;// total dprevious accesses
 		string * failurelog;// a list of failure occurances
 	public:
 		//properties
@@ -313,102 +313,90 @@ char ** explode(const string line, const string delimeters, int& nSec) {
 	unsigned int ci;// character index in line
 	unsigned int dc;// delimeter char count
 	unsigned int cc;// line char count
-	int strx = 0;// expected number of strings
-	int nStr = 0;// number of strings created
-	int flag = 0;// denotes whether the indexed char is a delimeter
-	int prev = 1;// is prev of flag - starts as 1 to ensure 1 char does not generate a str
+	unsigned int strx = 0;// expected number of strings
+	unsigned int nStr = 0;// number of strings created
+	int dflag = 0;// denotes whether the indexed char is a delimeter
+	int dprev = 1;// is dprev of dflag - starts as 1 to ensure 1 char does not generate a str
 	int tcount = 0;
-	char * lense;// the reference to copy of line
-	char * save;// ptr to first char of copy of line
+	char * save;// the reference to copy of line
+	char * lense;// the pointer that moves through the reference
 	char * delims;// a c char * of delimiting chars
 	char ** fragments = NULL;// return array of delinations 
 
 	//EXECUTABLE STATEMENTS
-	delims = (char *) delimeters.c_str();
-	save = (char *) line.c_str();
-	lense = save;
 	cc = line.length();
 	dc = delimeters.length();
+	delims = new char [dc];
+	save = new char [cc];
+	delimeters.copy(delims, dc, 0);
+	line.copy(save, cc, 0);
+	lense = save;
+	cout << "save = [" << &save << endl;
 	//1) determine # of expected strings
 	for(ci = 0; ci < cc; ++ci) {
-		flag = 0;
-		for(di = 0; ((di < dc) && (flag == 0)); ++di) {
+		dflag = 0;
+		for(di = 0; ((di < dc) && (dflag == 0)); ++di) {
 			if(lense[ci] == delims[di]) {
-				//cout << "char d = " << delims[di] << endl;
-				//cout << "char c [" << ci << "] = " << lense[ci] << endl;
-				flag = 1;
-				//cout << "flag = " << flag << endl;
+				dflag = 1;
+				break;
 			}
-			//cout << "flag = " << flag << endl;
 		}
-		if(prev == 0 && flag == 1) { // end of string of non delimeters
+		if(dprev == 0 && dflag == 1) { // end of string of non delimeters
 			++strx;
-			cout << "*" << endl;
 		}
-		prev = flag;
-		//cout << endl;
+		dprev = dflag;
 	}
-	if(flag == 0) {
+	if(dflag == 0) {
 		++strx;
 	}
 	
 	//2) allocate the data for each pointer
 	fragments = new char * [strx];// char* for every expected string
-	flag = 0;
+	dflag = 1;
 	ci = 0;
-	//3) find the first nondelimeter char in copy of line
-	while((*lense != '\0') && (strchr(delims, lense[ci]) != NULL)) {
-		flag = 0;
-		for(di = 0; ((di < dc) && (flag == 0)); ++di) {
-			if(lense[ci] == delims[di]) {
-				flag = 1;
-			}
-		}
-		++lense;
-		ci += 1;
-	}
-	cout << "\nlense = \"" << *lense << "\"\n";
-	/*
-	//4) iterate through and find complete strings
+	//3) iterate through and find complete strings
 	if(*lense != '\0') {
-		fragments[0] = lense;
-		nStr = 1;
+		nStr = 0;//1;
 		tcount = 0;
-
-		while(nStr < dc + 1 && *lense != '\0') {
-			if(*lense != '\0') {
-				// {if last char was part of delimiter}
-				if(flag == 1) {
-					// {if curr char is not a delimiter}
-					if(strchr(delims, *lense) == NULL) {
-						// {if not last fragment: assign part and reset}
-						if(nStr < dc + 1) {
-							fragments[nStr++] = lense;
-							flag = 0;
-							tcount = 0;
-						}
-					}
-				}// {check for delimiter at curr char: sever is found}
-				else if(strchr(delims, *lense) != NULL) {
-					flag = 1;
-					fragments[nStr - 1][tcount] = '\0';
+		dprev = 1;
+		while(*lense != '\0') {
+			dflag = 0;
+			// {is curr char is a delimiter?}
+			for(di = 0; ((di < dc) && (dflag == 0)); ++di) {
+				if(*lense == delims[di]) {
+					dflag = 1;
+					break;
 				}
-				// {update curr char: update char in fragment}
-				lense++;
-				tcount++;
 			}
+			// {if last char was part of delimiter}
+			if(dprev == 1 && dflag == 0) {
+				// {if not last fragment: assign part and reset}
+				if(nStr < dc + 1) {
+					fragments[nStr++] = lense;
+					tcount = 0;
+				}
+			}// {check for delimiter at curr char: sever is found}
+			else if(dprev == 0 && dflag == 1) {
+				fragments[nStr - 1][tcount] = '\0';
+			}
+			// {update curr char: update char in fragment}
+			++lense;
+			++tcount;
+			dprev = dflag;
 		}
 	}	
-	*/
+	nSec = strx;	
+	cout << "save = [" << &save << endl;
+//	delete save;
+//	delete [] delims;
 	return(fragments);
 	
-	nSec = strx;	
 }
 
 void test_explode() {
 	cout << "\n\nexplode" << endl;
 	char ** frags = NULL;
-	const string s1 = string("\n\rvedi	veni viki\vand.\fitwasgood\n\n");
+	const string s1 = string("\n\rvedi\tveni viki\vand.\fitwasgood\n\n");
 	//string("taco... beanstaco.pork... ... ...cheese.");
 	const string f1 = string("\t\v\n\f\r ");
 	int length = 0;
@@ -417,11 +405,11 @@ void test_explode() {
 	cout << "string1: (" << s1 << ")\n";
 	cout << "delim1: (" << f1 << ")\n";
 	cout << "length = " << length << endl;
-	/*if(length) {
+	if(length) {
 		for(int p = 0; p < length; ++p) {
 			cout << "\nfrags[" << p << "] = \"" << frags[p] << "\"";
 		}
-	}*/
+	}
 	delete [] frags;
 }
 
